@@ -1,0 +1,29 @@
+services:
+  next:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Stop at 'deps' stage to skip the production build
+      # This keeps the image build fast for dev
+      target: deps 
+    
+    ports:
+      - 3000:3000
+    
+    volumes:
+      # Sync your local folder with the container (Hot Reloading)
+      - .:/app
+      # Keep the container's node_modules separate from your local computer
+      - /app/node_modules
+      # Prevent local .next builds from conflicting with container builds
+      - /app/.next
+      - ./prisma:/app/prisma
+
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=file:/app/prisma/dev.db
+    
+    # Run the dev command we updated in Step 1
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+    restart: always

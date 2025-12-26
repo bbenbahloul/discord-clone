@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+  // Keep your existing binary targets for Docker/Alpine compatibility
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String?  // This stays as 'text'
+  image     String?
+  sender    String   // This stays as 'sender'
+  channelId String
+  metadata  String?  // <--- NEW: Required for Link Previews
+  createdAt DateTime @default(now())
+}
