@@ -58,6 +58,9 @@ nextApp.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log(`User Connected: ${socket.id}`);
 
+    // --- FIX: Send existing voice users to the new client immediately ---
+    socket.emit('voice-users-update', voiceUsers);
+
     // --- CHAT LOGIC ---
     socket.on('join-channel', async (channelId) => {
       socket.join(channelId);
