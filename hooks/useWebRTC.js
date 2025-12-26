@@ -64,7 +64,6 @@ export function useWebRTC(socket, username) {
     });
   }, [voiceUsers, myPeerId]);
 
-  // --- FIXED JOIN LOGIC ---
   const joinVoice = async (roomId) => {
     if (inVoice || streamRef.current || !socket) return;
 
@@ -123,18 +122,36 @@ export function useWebRTC(socket, username) {
     playSound('leave');
     if (socket) socket.emit('leave-voice');
 
+    // 1. Stop all local tracks (Mic & Screen)
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
       streamRef.current = null;
     }
+
+    // 2. STOP AND CLEAR ALL INCOMING AUDIO (Fixes the issue)
+    if (remoteAudioRefs.current) {
+        remoteAudioRefs.current.forEach(audio => {
+            audio.pause();
+            audio.srcObject = null;
+        });
+        remoteAudioRefs.current = [];
+    }
+
+    // 3. Destroy Peer Connection
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
-    remoteAudioRefs.current = [];
+    
+    // 4. Reset State
     setInVoice(false);
     setIsScreenSharing(false);
     setRemoteScreenStream(null);
+    setRemoteScreenUser(null);
+    remoteScreenSharerIdRef.current = null;
     setLocalStream(null);
     setMyPeerId('');
   };

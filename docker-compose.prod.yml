@@ -1,0 +1,24 @@
+services:
+  app:
+    container_name: discord_production
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Note: We REMOVED 'target: deps'.
+      # This forces Docker to run the whole Dockerfile (building the app for production).
+
+    restart: always
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Ensure this path matches the volume location inside the container
+      - DATABASE_URL=file:/app/prisma/dev.db
+
+    volumes:
+      # CRITICAL: We only mount the 'prisma' folder to save the database file.
+      # We do NOT mount the rest of the code, because we want to use the built version inside the image.
+      - ./prisma:/app/prisma
